@@ -42,10 +42,15 @@ float Adc::getCarCPHi() {
     taskENTER_CRITICAL();
     v = carCPHi;
     taskEXIT_CRITICAL();
+
+//TODO:
+//Find conversion from 12bit ADC result in MSP to "CarCP hi/low", convert return types to int
+//Is this fx just doing some slight calibration?
+
 #ifdef EVDEVBOARD_R0_WORKAROUNDS
     return (((v / 4095.) - (20. / 45.)) * 10 + (20. / 45.)) * 3.3;
 #else
-    return (((v / 4095.) - (24.9. / 44.9)) * 10 + (24.9 / 44.9)) * 3.3;
+    return (((v / 4095.) - (24.9 / 44.9)) * 10 + (24.9 / 44.9)) * 3.3;
 #endif
 #endif
     return 0;
@@ -75,6 +80,8 @@ void Adc::getEvseCPHi(float *out) {
     taskEXIT_CRITICAL();
     // printf("HI %u\n", o[1]);
     // convert to SI units in output buffer
+
+    //This function averages AVG samples into output buffer
     for (i = 0; i < AVG; i++) {
 #ifdef EVDEVBOARD_R0_WORKAROUNDS
         out[i] =

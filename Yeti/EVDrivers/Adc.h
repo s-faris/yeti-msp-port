@@ -61,4 +61,8 @@ private:
     volatile uint16_t evseCPuntriggered;
 };
 
+//
+
+class ADC : private InterruptBase {};
+
 #endif // SRC_EVDRIVERS_ADC_H_

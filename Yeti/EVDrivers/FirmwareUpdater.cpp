@@ -5,6 +5,10 @@
  *      Author: cornelius
  */
 
+
+//TODO:
+//Convert this to invoke BSL
+
 #include "FirmwareUpdater.h"
 typedef void (*pFunction)(void);
 pFunction JumpToApplication;

@@ -5,6 +5,8 @@
 //      Author: aw@pionier-manufaktur.de
 //
 
+//Sitara to MCU connection
+
 #include "MgmtLink.h"
 #include "EVConfig.h"
 

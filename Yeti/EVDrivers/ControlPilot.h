@@ -12,8 +12,8 @@
 
 #include "ControlPilot_HAL.h"
 #include "PowerSwitch.h"
-#include "ADE7978.h"
-#include "Rcd.h"
+//#include "ADE7978.h"
+//#include "Rcd.h"
 #include "cmsis_os.h"
 #include "main.h"
 #include <queue>

@@ -9,25 +9,26 @@
 
 #include <stdio.h>
 
-#include "../EVDrivers/ADE7978.h"
+//#include "../EVDrivers/ADE7978.h"
 #include "../EVDrivers/Adc.h"
 #include "../EVDrivers/ControlPilot.h"
-#include "../EVDrivers/FirmwareUpdater.h"
+#include "../EVDrivers/FirmwareUpdater.h" // convert to invoke BSL
 #include "../EVDrivers/Gpio.h"
 #include "../EVDrivers/PowerSwitch.h"
 #include "../EVDrivers/Rcd.h"
 #include "../EVDrivers/RemoteControlRX.h"
 #include "../EVDrivers/RemoteControlTX.h"
-#include "../EVDrivers/SpiBus.h"
+//#include "../EVDrivers/SpiBus.h"
 #include "EVConfig.h"
 
 extern TIM_HandleTypeDef htim3, htim1, htim8;
 extern ADC_HandleTypeDef hadc1;
 extern UART_HandleTypeDef huart2;
-extern SPI_HandleTypeDef hspi1;
-#if YETI_RELEASE == 1
-extern SPI_HandleTypeDef hspi2;
-#endif
+// extern SPI_HandleTypeDef hspi1;
+// #if YETI_RELEASE == 1
+// extern SPI_HandleTypeDef hspi2;
+// #endif
+
 volatile extern int reset_flags;
 float hard_limit;
 int reset_cause_int;
@@ -48,6 +49,7 @@ void StartMainTask(void *argument) {
 
 	// read out config jumper and set a hard current limit
 	static Gpio current_limit_cfg(CFG_GPIO_Port, CFG_Pin);
+	//static GPIO current_limit_cfg(GPIO_CFG_PORT, GPIO_CFG_USER_CFG_PIN);
 
 	if (current_limit_cfg.read())
 		hard_limit = 16.;
@@ -57,53 +59,62 @@ void StartMainTask(void *argument) {
 	printf("Starting PowerSwitch..\n");
 	// Power Switch driver
 	static Gpio l1mirror(MIRROR_L1_GPIO_Port, MIRROR_L1_Pin);
+	//static GPIO current_l1mirror(GPIO_MIRROR_PORT, GPIO_MIRROR_USER_L1_PIN);
 	static Gpio l2l3mirror(MIRROR_L2L3_GPIO_Port, MIRROR_L2L3_Pin);
+	//static GPIO current_l2l3mirror(GPIO_MIRROR_PORT, GPIO_MIRROR_USER_L2L3_PIN);
 	static PowerSwitch ps(&htim8, l1mirror, l2l3mirror);
 
-	printf("Starting Powermeter...\n");
-	static Gpio meter_cs(METER_CS_GPIO_Port, METER_CS_Pin);
-	static Gpio int1(PM_IRQ1_GPIO_Port, PM_IRQ1_Pin);
-	static ADE7978 power_meter(meter_cs, int1, &ps);
+	//SAM: No ADE, don't need powermeter
+	// printf("Starting Powermeter...\n");
+	// static Gpio meter_cs(METER_CS_GPIO_Port, METER_CS_Pin);
+	// static Gpio int1(PM_IRQ1_GPIO_Port, PM_IRQ1_Pin);
+	// static ADE7978 power_meter(meter_cs, int1, &ps);
+
 
 	// FIXME: add FRAM here
-	spi_bus.initialize( { &power_meter });
+	// spi_bus.initialize( { &power_meter });
 
-	power_meter.softReset();
-	power_meter.setup();
-	// switch off immediately if current is 30% over limit
-	power_meter.set_over_current_limit(hard_limit * 1.5);
+	// power_meter.softReset();
+	// power_meter.setup();
+	// // switch off immediately if current is 30% over limit
+	// power_meter.set_over_current_limit(hard_limit * 1.5);
 
-	printf("Starting RCD...\n");
-	// RCD driver
-	static Gpio testout(RCD_TEST_GPIO_Port, RCD_TEST_Pin);
-	static Gpio errorin(RCD_DC_ERROR_GPIO_Port, RCD_DC_ERROR_Pin);
+	//SAM: Residual current? 
+// 	printf("Starting RCD...\n");
+// 	// RCD driver
+// 	static Gpio testout(RCD_TEST_GPIO_Port, RCD_TEST_Pin);
+// 	static Gpio errorin(RCD_DC_ERROR_GPIO_Port, RCD_DC_ERROR_Pin);
 
-	static Gpio pwmin(RCD_PWM_IN_GPIO_Port, RCD_PWM_IN_Pin);
-	static Rcd rcd(testout, errorin, pwmin, &htim3, &ps);
-#ifdef RCD_UNUSED
-    rcd.setUnused(true);
-#endif
+// 	static Gpio pwmin(RCD_PWM_IN_GPIO_Port, RCD_PWM_IN_Pin);
+// 	static Rcd rcd(testout, errorin, pwmin, &htim3, &ps);
+// #ifdef RCD_UNUSED
+//     rcd.setUnused(true);
+// #endif
+
+
 	printf("Starting ADC...\n");
 	// ADC driver
 	static Adc adc(&hadc1);
+	//static ADC adc
 
 	// osDelay(7000);
 	// If we start RCD self test too early after power on, it will fail
 	// Execute RCD self test at least once on startup
-#if 0
-    if (!rcd.executeSelfTest()) {
-        printf("DEAD BEEF: RCD self test failed.\n");
-        while (1) {
-            osDelay(50);
-        };
-    } else {
-        printf("RCD self test successful.\n");
-    }
-#endif
+// #if 0
+//     if (!rcd.executeSelfTest()) {
+//         printf("DEAD BEEF: RCD self test failed.\n");
+//         while (1) {
+//             osDelay(50);
+//         };
+//     } else {
+//         printf("RCD self test successful.\n");
+//     }
+// #endif
 
 	printf("Starting ControlPilot...\n");
 
 	static Gpio cp_enable(CP_ENABLE_GPIO_Port, CP_ENABLE_Pin);
+	//static GPIO cp_enable(GPIO_CP_PORT, GPIO_CP_PIN);
 	static ControlPilot_HAL control_pilot_hal(&htim1, adc, &cp_enable);
 
 	printf("Starting MgmtLink...\n");
