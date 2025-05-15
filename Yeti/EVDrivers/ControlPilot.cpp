@@ -15,8 +15,8 @@
 
 static bool compare_error_flags(const ErrorFlags &a, const ErrorFlags &b) {
 	return a.diode_fault == b.diode_fault
-			and a.rcd_selftest_failed == b.rcd_selftest_failed
-			and a.rcd_triggered == b.rcd_triggered
+			//and a.rcd_selftest_failed == b.rcd_selftest_failed
+			//and a.rcd_triggered == b.rcd_triggered
 			and a.ventilation_not_available == b.ventilation_not_available
 			and a.connector_lock_failed == b.connector_lock_failed
 			and a.cp_signal_fault == b.cp_signal_fault
@@ -24,16 +24,14 @@ static bool compare_error_flags(const ErrorFlags &a, const ErrorFlags &b) {
 }
 
 ControlPilot::ControlPilot(ControlPilot_HAL &_control_pilot_hal,
-		RemoteControlTX &_remote_tx, PowerSwitch &_power_switch, Rcd &_rcd,
-		ADE7978 &_power_meter) :
+		RemoteControlTX &_remote_tx, PowerSwitch &_power_switch) :
 		Task("ControlPilot", 2048 * 4), control_pilot_hal(_control_pilot_hal), remote_tx(
-				_remote_tx), power_switch(_power_switch), rcd(_rcd), power_meter(
-				_power_meter) {
+				_remote_tx), power_switch(_power_switch) {
 
 	enable();
 	pwm_F();
 
-	rcd.enable(); // Default is RCD is enabled
+	//rcd.enable(); // Default is RCD is enabled
 
 	state_mutex = osMutexNew(&state_mutex_attributes);
 }

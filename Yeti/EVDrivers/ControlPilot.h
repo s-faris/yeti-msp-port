@@ -24,8 +24,7 @@
 class ControlPilot: public Task {
 public:
 	ControlPilot(ControlPilot_HAL &_control_pilot_hal,
-			RemoteControlTX &_remote_tx, PowerSwitch &_power_switch, Rcd &_rcd,
-			ADE7978 &_power_meter);
+			RemoteControlTX &_remote_tx, PowerSwitch &_power_switch);
 	virtual ~ControlPilot();
 
 	void pwm_on(float dc);
@@ -54,8 +53,8 @@ private:
 	ControlPilot_HAL &control_pilot_hal;
 	RemoteControlTX &remote_tx;
 	PowerSwitch &power_switch;
-	Rcd &rcd;
-	ADE7978 &power_meter;
+	//Rcd &rcd;
+	//ADE7978 &power_meter;
 
 	virtual void main();
 

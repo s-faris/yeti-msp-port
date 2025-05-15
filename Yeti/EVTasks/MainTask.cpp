@@ -121,7 +121,7 @@ void StartMainTask(void *argument) {
 	// enable communication to hi level stack
 	static MgmtLink link(&huart2);
 
-		printf("Start RemoteControl...\n");
+	printf("Start RemoteControl...\n");
 	static RemoteControlTX rc_tx(link);
 
 	static ControlPilot control_pilot(control_pilot_hal, rc_tx, ps, rcd, power_meter);

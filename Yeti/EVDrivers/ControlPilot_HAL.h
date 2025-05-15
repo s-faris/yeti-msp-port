@@ -30,6 +30,7 @@
 class ControlPilot_HAL : private InterruptBase {
 public:
     ControlPilot_HAL(TIM_HandleTypeDef *_pwmTimer, Adc &_adc, Gpio *_cpEnable);
+    //ControlPilot_HAL(TIM_HandleTypeDef* _pwmTimer, ADC &_adc, GPIO* _cpEnable);
     virtual ~ControlPilot_HAL();
 
     bool readCPSignal();
@@ -55,6 +56,7 @@ private:
     Adc &adc;
 
     float cpLo, cpHi;
+    //IQ Math convert for MSPM0?
 
     Gpio *cpEnable;
 };
