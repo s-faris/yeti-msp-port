@@ -16,7 +16,7 @@
 //#include "Rcd.h"
 #include "cmsis_os.h"
 #include "main.h"
-#include <queue>
+#include <queue.h>
 #include "Task.h"
 #include "RemoteControlTX.h"
 #include "DataTypes.h"
@@ -32,8 +32,8 @@ public:
 	void pwm_F();
 	void replug(unsigned int t);
 
-	// Allow to power on relais. The ControlPilot class decides when to actually
-	// switch on and off. Switiching off is always allowed independent of this
+	// Allow to power on relays. The ControlPilot class decides when to actually
+	// switch on and off. Switching off is always allowed independent of this
 	// setting. The flag will be reset e.g. if car unplugs or if pwmOff()/pwmF()
 	// is called
 	void allow_power_on(bool p);
