@@ -9,7 +9,6 @@
 
 #include <stdio.h>
 
-//#include "../EVDrivers/ADE7978.h"
 #include "../EVDrivers/Adc.h"
 #include "../EVDrivers/ControlPilot.h"
 #include "../EVDrivers/FirmwareUpdater.h" // convert to invoke BSL
@@ -18,7 +17,6 @@
 #include "../EVDrivers/Rcd.h"
 #include "../EVDrivers/RemoteControlRX.h"
 #include "../EVDrivers/RemoteControlTX.h"
-//#include "../EVDrivers/SpiBus.h"
 #include "EVConfig.h"
 
 extern TIM_HandleTypeDef htim3, htim1, htim8;
@@ -64,7 +62,7 @@ void StartMainTask(void *argument) {
 	//static GPIO current_l2l3mirror(GPIO_MIRROR_PORT, GPIO_MIRROR_USER_L2L3_PIN);
 	static PowerSwitch ps(&htim8, l1mirror, l2l3mirror);
 
-	//SAM: No ADE, don't need powermeter
+	//SAM: No ADE, do we need powermeter? does powermeter require ADE?
 	// printf("Starting Powermeter...\n");
 	// static Gpio meter_cs(METER_CS_GPIO_Port, METER_CS_Pin);
 	// static Gpio int1(PM_IRQ1_GPIO_Port, PM_IRQ1_Pin);
@@ -79,23 +77,21 @@ void StartMainTask(void *argument) {
 	// // switch off immediately if current is 30% over limit
 	// power_meter.set_over_current_limit(hard_limit * 1.5);
 
-	//SAM: Residual current? 
-// 	printf("Starting RCD...\n");
-// 	// RCD driver
-// 	static Gpio testout(RCD_TEST_GPIO_Port, RCD_TEST_Pin);
-// 	static Gpio errorin(RCD_DC_ERROR_GPIO_Port, RCD_DC_ERROR_Pin);
+	printf("Starting RCD...\n");
+	static Gpio testout(RCD_TEST_GPIO_Port, RCD_TEST_Pin);
+	static Gpio errorin(RCD_DC_ERROR_GPIO_Port, RCD_DC_ERROR_Pin);
 
-// 	static Gpio pwmin(RCD_PWM_IN_GPIO_Port, RCD_PWM_IN_Pin);
-// 	static Rcd rcd(testout, errorin, pwmin, &htim3, &ps);
-// #ifdef RCD_UNUSED
-//     rcd.setUnused(true);
-// #endif
+	static Gpio pwmin(RCD_PWM_IN_GPIO_Port, RCD_PWM_IN_Pin);
+	static Rcd rcd(testout, errorin, pwmin, &htim3, &ps);
+#ifdef RCD_UNUSED
+	rcd.setUnused(true);
+#endif
 
 
 	printf("Starting ADC...\n");
 	// ADC driver
 	static Adc adc(&hadc1);
-	//static ADC adc
+	//ADC0_INST;
 
 	// osDelay(7000);
 	// If we start RCD self test too early after power on, it will fail

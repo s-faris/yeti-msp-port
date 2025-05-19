@@ -19,6 +19,40 @@
 
 #include "InterruptBase.h"
 
+// REMINDER: struct holds actual binary values, getters convert to SI
+
+typedef struct {
+    static constexpr uint8_t AVG = 50;
+
+//#pragma pack(4) //needed? review memory layout after build
+    uint16_t gADCSamples[4];
+    uint16_t evseCPHi[AVG], evseCPLo[AVG];
+    volatile uint8_t evseCPHiIdx, evseCPLoIdx; 
+    volatile uint16_t evsePP, evseDP1, pluckLockFB;
+    //temps from ADC1?
+    volatile uint8_t evseCPSampleTarget;
+} ADC;
+
+//What were these for?
+//float getCarCPHi(ADC* adc);
+//float getCarCPLo(ADC* adc);
+
+void getEvseCPHi(ADC* adc, float *out);
+void getEvseCPLo(ADC* adc, float *out);
+float getEvsePP(ADC* adc);
+float getEvseDP1(ADC* adc);
+float getPluckLockFB(ADC* adc);
+
+//Allows control pilot to signal whether it is sending high or low current
+void setTriggerEvseCPHi(ADC* adc);
+void setTriggerEvseCPLo(ADC* adc);
+
+void ADC_ISR(ADC* adc);
+
+    
+
+
+
 class Adc : private InterruptBase {
 public:
     Adc(ADC_HandleTypeDef *_adc);
@@ -55,14 +89,10 @@ private:
     // buffer for triggered values
     // uint16_t carCPHi, carCPLo;
     uint16_t evseCPHi[AVG], evseCPLo[AVG];
-    volatile uint8_t evseCPHiIdx, evseCPLoIdx;
+    volatile uint8_t evseCPHiIdx, evseCPLoIdx; 
     volatile uint16_t supply12V, supplyN12V, temperature, evsePP, vrefint;
     volatile uint8_t evseCPSampleTarget;
     volatile uint16_t evseCPuntriggered;
 };
-
-//
-
-class ADC : private InterruptBase {};
 
 #endif // SRC_EVDRIVERS_ADC_H_

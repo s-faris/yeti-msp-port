@@ -1,9 +1,16 @@
 #ifndef SRC_EVDRIVERS_CPSTATE_H_
 #define SRC_EVDRIVERS_CPSTATE_H_
 
-enum class InternalCPState {
-	Disabled, A, B, C, D, E, F, DF
-};
+typedef enum _InternalCPState {
+	DISABLED,
+	A,
+	B,
+	C,
+	D,
+	E,
+	F,
+	DF
+} InternalCPState;
 
 inline CpState to_CpState(InternalCPState input_state) {
 	CpState output_state;

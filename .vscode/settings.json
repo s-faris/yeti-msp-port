@@ -6,6 +6,8 @@
         "main.h": "c",
         "stm32g4xx_hal.h": "c",
         "driverlib.h": "c",
-        "dl_vref.h": "c"
+        "dl_vref.h": "c",
+        "adc.h": "c",
+        "firmwareupdater.h": "c"
     }
 }

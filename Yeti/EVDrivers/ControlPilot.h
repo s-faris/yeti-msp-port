@@ -12,14 +12,40 @@
 
 #include "ControlPilot_HAL.h"
 #include "PowerSwitch.h"
-//#include "ADE7978.h"
-//#include "Rcd.h"
+#include "Rcd.h"
 #include "cmsis_os.h"
 #include "main.h"
 #include <queue.h>
 #include "Task.h"
 #include "RemoteControlTX.h"
 #include "DataTypes.h"
+
+typedef struct {
+	ControlPilot_HAL *control_pilot_hal;
+	RemoteControlTX *remote_tx;
+	PowerSwitch *power_switch;
+} ControlPilot;
+
+ControlPilot *control_pilot_create(ControlPilot_HAL *control_pilot_hal, RemoteControlTX *remote_tx, PowerSwitch *power_switch);
+void control_pilot_destroy(ControlPilot *control_pilot);
+
+void control_pilot_pwm_on(ControlPilot *control_pilot, float dc);
+void control_pilot_pwm_off(ControlPilot *control_pilot);
+void control_pilot_pwm_F(ControlPilot *control_pilot);
+void control_pilot_replug(ControlPilot *control_pilot, unsigned int t);
+
+void control_pilot_allow_power_on(ControlPilot *control_pilot, bool p);
+void control_pilot_connector_lock(ControlPilot *control_pilot, bool lock);
+void control_pilot_rcd_enable(ControlPilot *control_pilot);
+void control_pilot_rcd_disable(ControlPilot *control_pilot);
+
+void set_over_current(ControlPilot *control_pilot, bool o, uint32_t timeout);
+void set_three_phases(ControlPilot *control_pilot, bool n);
+
+//private functions from the ControlPilot class will be implemented in the .c file statically
+
+#endif  // SRC_EVDRIVERS_CONTROLPILOT_H_
+
 
 class ControlPilot: public Task {
 public:

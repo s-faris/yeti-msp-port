@@ -1,49 +1,57 @@
-/* USER CODE BEGIN Header */
-/**
-  ******************************************************************************
-  * @file           : main.c
-  * @brief          : Main program body
-  ******************************************************************************
-  * @attention
-  *
-  * <h2><center>&copy; Copyright (c) 2021 STMicroelectronics.
-  * All rights reserved.</center></h2>
-  *
-  * This software component is licensed by ST under BSD 3-Clause license,
-  * the "License"; You may not use this file except in compliance with the
-  * License. You may obtain a copy of the License at:
-  *                        opensource.org/licenses/BSD-3-Clause
-  *
-  ******************************************************************************
-  */
-/* USER CODE END Header */
-/* Includes ------------------------------------------------------------------*/
+/*
+ * Copyright (c) 2021, Texas Instruments Incorporated
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ * *  Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ *
+ * *  Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ * *  Neither the name of Texas Instruments Incorporated nor the names of
+ *    its contributors may be used to endorse or promote products derived
+ *    from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+ * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+ * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+ * OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+ * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 #include "main.h"
 #include "cmsis_os.h"
+#include <stdio.h>
 
-/* Private includes ----------------------------------------------------------*/
-/* USER CODE BEGIN Includes */
 #include "EVTasks/MainTask.h"
 #include "EVConfig.h"
-#include <stdio.h>
-#include "EVDrivers/FirmwareUpdater.h"
-/* USER CODE END Includes */
 
-/* Private typedef -----------------------------------------------------------*/
-/* USER CODE BEGIN PTD */
+#include "EVDrivers/Adc.h"
+#include "EVDrivers/ControlPilot.h"
+#include "EVDrivers/FirmwareUpdater.h" // convert to invoke BSL
+#include "EVDrivers/Gpio.h"
+#include "EVDrivers/PowerSwitch.h"
+#include "EVDrivers/Rcd.h"
+#include "EVDrivers/RemoteControlRX.h"
+#include "EVDrivers/RemoteControlTX.h"
 
-/* USER CODE END PTD */
 
-/* Private define ------------------------------------------------------------*/
-/* USER CODE BEGIN PD */
-/* USER CODE END PD */
+//TODO: wrap ADCs into one struct for easier use. Find if temperature sensing needs to be done on 
+//different schedulde -- if so, probably need to keep these separate
+ADC gADC0;
+ADC gADC1;
 
-/* Private macro -------------------------------------------------------------*/
-/* USER CODE BEGIN PM */
-
-/* USER CODE END PM */
-
-/* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc1;
 ADC_HandleTypeDef hadc5;
 DMA_HandleTypeDef hdma_adc1;
@@ -64,6 +72,10 @@ UART_HandleTypeDef huart3;
 DMA_HandleTypeDef hdma_usart2_tx;
 DMA_HandleTypeDef hdma_usart2_rx;
 
+//SAM: create DMA buffers here, declare extern in MainTask.cpp
+#define ADC0_SAMPLES 4
+#define ADC1_SAMPLES 2
+
 /* Definitions for defaultTask */
 osThreadId_t defaultTaskHandle;
 const osThreadAttr_t defaultTask_attributes = {
@@ -71,11 +83,7 @@ const osThreadAttr_t defaultTask_attributes = {
   .priority = (osPriority_t) osPriorityNormal,
   .stack_size = 512 * 4
 };
-/* USER CODE BEGIN PV */
 
-/* USER CODE END PV */
-
-/* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_DMA_Init(void);
@@ -93,52 +101,31 @@ static void MX_CRC_Init(void);
 
 void StartDefaultTask(void *argument);
 
-/* USER CODE BEGIN PFP */
-
-/* USER CODE END PFP */
-
-/* Private user code ---------------------------------------------------------*/
-/* USER CODE BEGIN 0 */
-
-/* USER CODE END 0 */
-
-/**
-  * @brief  The application entry point.
-  * @retval int
-  */
 int main(void)
 {
-  /* USER CODE BEGIN 1 */
-
-
 	if (reset_flags==0x12ABCDEF) {
 	  for (int i=0;i<100;i++) reset_flags = i;
 	  restartInBootLoaderMode_Step2();
   }
 
+
+  //SAM: is this critical?
+
 	__HAL_RCC_USART1_CLK_ENABLE();
 	__HAL_RCC_USART1_FORCE_RESET();
 	__HAL_RCC_USART1_RELEASE_RESET();
 
-  /* USER CODE END 1 */
-
-  /* MCU Configuration--------------------------------------------------------*/
-
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
 
-  /* USER CODE BEGIN Init */
+  SYSCFG_DL_init();
+  //SAM: call bootloader?
 
-  /* USER CODE END Init */
 
   /* Configure the system clock */
   SystemClock_Config();
 
-  /* USER CODE BEGIN SysInit */
-
-  /* USER CODE END SysInit */
-
-  /* Initialize all configured peripherals */
+  /* Configure peripherals */
   MX_GPIO_Init();
   MX_DMA_Init();
   MX_USART2_UART_Init();
@@ -152,7 +139,7 @@ int main(void)
   MX_CRC_Init();
   MX_ADC5_Init();
   MX_TIM8_Init();
-  /* USER CODE BEGIN 2 */
+
   HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, 6, 0);
   HAL_NVIC_SetPriority(DMA1_Channel2_IRQn, 6, 0);
   HAL_NVIC_SetPriority(DMA1_Channel3_IRQn, 6, 0);
@@ -163,60 +150,81 @@ int main(void)
   HAL_NVIC_SetPriority(TIM1_CC_IRQn, 6, 0);
   HAL_NVIC_SetPriority(TIM3_IRQn, 6, 0);
   HAL_NVIC_SetPriority(USART2_IRQn, 6, 0);
-  /* USER CODE END 2 */
 
-  /* Init scheduler */
-  osKernelInitialize();
 
-  /* USER CODE BEGIN RTOS_MUTEX */
-  /* add mutexes, ... */
-  /* USER CODE END RTOS_MUTEX */
+  //SAM: DMA inits for ADC0 and ADC1
+  DL_DMA_setSrcAddr(DMA, DMA_CH0_CHAN_ID, (uint32_t)DL_ADC12_getMemResultAddress(ADC12_0_INST, 0));
+  DL_DMA_setDestAddr(DMA, DMA_CH0_CHAN_ID, (uint32_t)&gADC0->gADC0Samples[0]);
+  DL_DMA_setTransferSize(DMA, DMA_CH0_CHAN_ID, ADC0_SAMPLES);
+  DL_DMA_enableChannel(DMA, DMA_CH0_CHAN_ID);
 
-  /* USER CODE BEGIN RTOS_SEMAPHORES */
-  /* add semaphores, ... */
-  /* USER CODE END RTOS_SEMAPHORES */
+  DL_DMA_setSrcAddr(DMA, DMA_CH0_CHAN_ID, (uint32_t)DL_ADC12_getMemResultAddress(ADC12_1_INST, 0));
+  DL_DMA_setDestAddr(DMA, DMA_CH0_CHAN_ID, (uint32_t)&gADC1->gADC1Samples[0]);
+  DL_DMA_setTransferSize(DMA, DMA_CH0_CHAN_ID, ADC1_SAMPLES);
+  DL_DMA_enableChannel(DMA, DMA_CH0_CHAN_ID);
 
-  /* USER CODE BEGIN RTOS_TIMERS */
-  /* start timers, add new ones, ... */
-  /* USER CODE END RTOS_TIMERS */
 
-  /* USER CODE BEGIN RTOS_QUEUES */
-  /* add queues, ... */
-  /* USER CODE END RTOS_QUEUES */
+  // /* Init scheduler */
+  // osKernelInitialize();
 
-  /* Create the thread(s) */
-  /* creation of defaultTask */
-  defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
+  // /* Create the thread(s) */
+  // /* creation of defaultTask */
+  // defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
 
-  /* USER CODE BEGIN RTOS_THREADS */
-#ifdef SELFTEST_MODE
-  osThreadId_t selfTestTaskHandle;
-  const osThreadAttr_t selfTestTask_attributes = {
-    .name = "selfTestTask",
-    .priority = (osPriority_t) osPriorityNormal,
-    .stack_size = 512 * 4
-  };
-#endif
-  /* USER CODE END RTOS_THREADS */
+  // /* Start scheduler */
+  // osKernelStart();
 
-  /* USER CODE BEGIN RTOS_EVENTS */
-  /* add events, ... */
-  /* USER CODE END RTOS_EVENTS */
-
-  /* Start scheduler */
-  osKernelStart();
-
-  /* We should never get here as control is now taken by the scheduler */
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
   while (1)
   {
-    /* USER CODE END WHILE */
-
-    /* USER CODE BEGIN 3 */
+    //CP loop
   }
-  /* USER CODE END 3 */
 }
+
+//SAM: IRQs
+
+void ADC12_0_INST_IRQHandler(void) {
+  switch (DL_ADC12_getPendingInterrupt(ADC12_0_INST)) {
+  case DL_ADC12_IIDX_DMA_DONE:
+    ADC_ISR(&gADC0);
+    break;
+  default:
+    break;
+  }
+}
+
+void ADC12_1_INST_IRQHandler(void) {
+  switch (DL_ADC12_getPendingInterrupt(ADC12_1_INST)) {
+  case DL_ADC12_IIDX_DMA_DONE:
+    //ADC_ISR(&gADC1);
+    break;
+  default:
+    break;
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /**
   * @brief System Clock Configuration

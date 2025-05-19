@@ -51,7 +51,7 @@ SYSCONFIG_WEAK void SYSCFG_DL_init(void)
 {
     SYSCFG_DL_initPower();
     SYSCFG_DL_GPIO_init();
-    /* Module-Specific Initializations*/
+    /* Module-Specific Initializations */
     SYSCFG_DL_SYSCTL_init();
     SYSCFG_DL_CCS_CP_init();
     SYSCFG_DL_Relay_EN_init();

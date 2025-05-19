@@ -6,13 +6,79 @@
  */
 
 #include "Adc.h"
-
 #include <cstring>
-
 #include "cmsis_os.h"
 #include "main.h"
-
 #include "EVConfig.h"
+
+//SAM TODO: Fix this after understanding the averaging math from cornelius
+void getEvseCPHi(ADC* adc, float *out) {
+    //return adc->evseCPHi / 4095 * 3.3;
+    return;
+}
+
+void getEvseCPLo(ADC* adc, float *out) {
+    //return adc->evseCPLo / 4095 * 3.3;
+    return;
+}
+
+float getEvsePP(ADC* adc) {
+    return adc->evsePP / 4095 * 3.3;
+}
+
+float getEvseDP1(ADC* adc) {
+    return adc->evseDP1 / 4095 * 3.3;
+}
+
+float getPluckLockFB(ADC* adc) {
+    return adc->pluckLockFB / 4095 * 3.3;
+}
+
+void setTriggerEvseCPHi(ADC* adc) {
+    adc->evseCPSampleTarget = 2;
+}
+
+void setTriggerEvseCPLo(ADC* adc) {
+    adc->evseCPSampleTarget = 1;
+}
+
+void ADC_ISR(ADC* adc) {
+    if(evseCPSampleTarget == 1) {
+        adc->evseCPLo[adc->evseCPLoIdx] = adc->gADCSamples[0];
+        if (++adc->evseCPLoIdx >= adc->AVG) {
+            adc->evseCPLoIdx = 0;
+        }
+    } else if (evseCPSampleTarget == 2) {
+        adc->evseCPHi[adc->evseCPHiIdx] = adc->gADCSamples[0];
+        if (++adc->evseCPHiIdx >= adc->AVG) {
+            adc->evseCPHiIdx = 0;
+        }
+    }
+    adc->evsePP = adc->gADCSamples[1];
+    adc->evseDP1 = adc->gADCSamples[2];
+    adc->pluckLockFB = adc->gADCSamples[3];
+    //adc->temperature = adc->gADCSamples[4];
+    adc->evseCPSampleTarget = 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 Adc::Adc(ADC_HandleTypeDef *_adc) : adc(_adc) {
 

@@ -29,6 +29,7 @@ extern "C" {
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32g4xx_hal.h"
+#include "ti_msp_dl_config.h"
 #include "driverlib.h"
 
 /* Private includes ----------------------------------------------------------*/
