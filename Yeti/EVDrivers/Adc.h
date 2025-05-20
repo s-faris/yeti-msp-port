@@ -20,6 +20,10 @@
 #include "InterruptBase.h"
 
 // REMINDER: struct holds actual binary values, getters convert to SI
+typedef enum _CPSampleTarget {
+    HI,
+    LO
+} CPSampleTarget;
 
 typedef struct {
     static constexpr uint8_t AVG = 50;
@@ -46,6 +50,7 @@ float getPluckLockFB(ADC* adc);
 //Allows control pilot to signal whether it is sending high or low current
 void setTriggerEvseCPHi(ADC* adc);
 void setTriggerEvseCPLo(ADC* adc);
+void TriggerEvseCPSample(ADC* adc);
 
 void ADC_ISR(ADC* adc);
 

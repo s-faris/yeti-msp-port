@@ -180,7 +180,19 @@ void ADC12_0_INST_IRQHandler(void) {
 void ADC12_1_INST_IRQHandler(void) {
   switch (DL_ADC12_getPendingInterrupt(ADC12_1_INST)) {
   case DL_ADC12_IIDX_DMA_DONE:
-    //Temperatures ready
+    //Temperatures ready. If above 90C, reduce charging power or abort
+    break;
+  default:
+    break;
+  }
+}
+
+void TIMG0_IRQHandler(void) {
+  switch (DL_TimerG_getPendingInterrupt(TIMG0)) {
+  case DL_TIMER_IIDX_ZERO:
+    //Specify Hi or Lo sample
+    
+    //Start ADC sample
     break;
   default:
     break;

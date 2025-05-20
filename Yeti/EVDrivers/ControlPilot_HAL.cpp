@@ -35,6 +35,9 @@ ControlPilot_HAL::~ControlPilot_HAL() {
     setPWM(0.);
 }
 
+//SAM:
+//48000 is counter period (getCounterPeriod + 1)
+//this expects a float between 0 and 1 representing the duty cycle. Does DL have a function for this already? Set duty cycle?
 void ControlPilot_HAL::setPWM(float dc) {
     uint16_t counterTicks = dc * 48000;
     pwmTimer->Instance->CCR1 = counterTicks;
@@ -79,6 +82,11 @@ bool ControlPilot_HAL::readCPSignal() {
 
     return true;
 }
+
+//SAM: at 200 cycles, CH2 toggles (starts low). PWM IRQ happens and sees this is active, triggers a EvseCPHi reading
+//     at 45500 cycles, CH3 toggles (starts low). Counter wraps around and CH3 toggles low at 200 cycles, next PWM IRQ triggers a EvseCPLo reading
+//     effect is alternating Hi/Lo reads every PWM cycle
+//     Can we just do this in SW and alternate the trigger every time we go into ISR? output compare values seem arbitrary and unneeded
 
 // End of high pulse in PWM cycle / general CC match callback
 // Used here for CC2/CC3 that triggers ADC readings at the right moments
