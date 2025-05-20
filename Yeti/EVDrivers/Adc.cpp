@@ -57,7 +57,6 @@ void ADC_ISR(ADC* adc) {
     adc->evsePP = adc->gADCSamples[1];
     adc->evseDP1 = adc->gADCSamples[2];
     adc->pluckLockFB = adc->gADCSamples[3];
-    //adc->temperature = adc->gADCSamples[4];
     adc->evseCPSampleTarget = 0;
 }
 

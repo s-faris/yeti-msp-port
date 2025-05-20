@@ -8,6 +8,7 @@
         "driverlib.h": "c",
         "dl_vref.h": "c",
         "adc.h": "c",
-        "firmwareupdater.h": "c"
+        "firmwareupdater.h": "c",
+        "rcd.h": "c"
     }
 }

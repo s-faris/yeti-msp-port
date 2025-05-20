@@ -33,20 +33,16 @@ private:
 
 //SAM :
 
-class GPIO {
-    public:
-        GPIO(GPIO_Regs* gpio, uint32_t pins);
-        virtual ~GPIO();
-        void set();
-        void reset();
-        bool read();
+typedef struct {
+    GPIO_Regs* port;
+    uint32_t pins;
+} GPIO;
 
-        uint16_t getPin();
-        GPIO_Regs* getPort();
+void set(GPIO gpio);
+void reset(GPIO gpio);
+bool read(GPIO gpio);
 
-    private:
-        GPIO_Regs* gpioPort;
-        uint32_t gpioPins;
-}
+uint16t getPin(GPIO gpio);
+GPIO_Regs* getPort(GPIO gpio);
 
 #endif // SRC_EVDRIVERS_GPIO_H_

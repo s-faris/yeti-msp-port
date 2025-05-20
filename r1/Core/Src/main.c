@@ -46,11 +46,11 @@
 #include "EVDrivers/RemoteControlRX.h"
 #include "EVDrivers/RemoteControlTX.h"
 
+#define ADC0_SAMPLES 4
+#define ADC1_SAMPLES 2
 
-//TODO: wrap ADCs into one struct for easier use. Find if temperature sensing needs to be done on 
-//different schedulde -- if so, probably need to keep these separate
 ADC gADC0;
-ADC gADC1;
+volatile uint16_t gADC1Temps[ADC1_SAMPLES];
 
 ADC_HandleTypeDef hadc1;
 ADC_HandleTypeDef hadc5;
@@ -71,10 +71,6 @@ UART_HandleTypeDef huart2;
 UART_HandleTypeDef huart3;
 DMA_HandleTypeDef hdma_usart2_tx;
 DMA_HandleTypeDef hdma_usart2_rx;
-
-//SAM: create DMA buffers here, declare extern in MainTask.cpp
-#define ADC0_SAMPLES 4
-#define ADC1_SAMPLES 2
 
 /* Definitions for defaultTask */
 osThreadId_t defaultTaskHandle;
@@ -159,20 +155,9 @@ int main(void)
   DL_DMA_enableChannel(DMA, DMA_CH0_CHAN_ID);
 
   DL_DMA_setSrcAddr(DMA, DMA_CH0_CHAN_ID, (uint32_t)DL_ADC12_getMemResultAddress(ADC12_1_INST, 0));
-  DL_DMA_setDestAddr(DMA, DMA_CH0_CHAN_ID, (uint32_t)&gADC1->gADC1Samples[0]);
+  DL_DMA_setDestAddr(DMA, DMA_CH0_CHAN_ID, (uint32_t)&gADC1Temps[0]);
   DL_DMA_setTransferSize(DMA, DMA_CH0_CHAN_ID, ADC1_SAMPLES);
   DL_DMA_enableChannel(DMA, DMA_CH0_CHAN_ID);
-
-
-  // /* Init scheduler */
-  // osKernelInitialize();
-
-  // /* Create the thread(s) */
-  // /* creation of defaultTask */
-  // defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
-
-  // /* Start scheduler */
-  // osKernelStart();
 
   while (1)
   {
@@ -195,7 +180,7 @@ void ADC12_0_INST_IRQHandler(void) {
 void ADC12_1_INST_IRQHandler(void) {
   switch (DL_ADC12_getPendingInterrupt(ADC12_1_INST)) {
   case DL_ADC12_IIDX_DMA_DONE:
-    //ADC_ISR(&gADC1);
+    //Temperatures ready
     break;
   default:
     break;

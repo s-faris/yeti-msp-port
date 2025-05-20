@@ -27,20 +27,22 @@ GPIO_TypeDef *Gpio::getPort() { return port; }
 
 
 //SAM:
-
-GPIO::GPIO(GPIO_Regs* gpio, uint32_t pins) {
-    this->gpio = gpio;
-    this->pins = pins;
+void set(GPIO gpio) {
+    DL_GPIO_setPins(gpioPort, gpioPins);
 }
 
-GPIO::~GPIO() {};
+void reset(GPIO gpio) {
+    DL_GPIO_clearPins(gpioPort, gpioPins);
+}
 
-void GPIO::set() { DL_GPIO_setPins(gpioPort, gpioPins); }
+bool read(GPIO gpio) {
+    return (DL_GPIO_readPins(gpioPort, gpioPins) ? true : false);
+}
 
-void GPIO::reset() { DL_GPIO_clearPins(gpioPort, gpioPins); }
+uint16_t getPin(GPIO gpio) {
+    return gpio->pins;
+}
 
-bool GPIO::read() { return (DL_GPIO_readPins(gpioPort, gpioPins) ? true : false); }
-
-uint16_t GPIO::getPin() { return gpioPins; }
-
-GPIO_Regs* GPIO::getPort() { return gpioPort; }
+GPIO_Regs* getPort(GPIO gpio) {
+    return gpio->port;
+}
