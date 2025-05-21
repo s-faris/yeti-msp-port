@@ -46,6 +46,17 @@
 #include "EVDrivers/RemoteControlRX.h"
 #include "EVDrivers/RemoteControlTX.h"
 
+/* Temperature constants */
+#define R_0 1000
+#define R_PULLUP 10000
+#define TEMP_A 0.0039083
+#define TEMP_B -5.77 * 0.0000001
+
+uint32_t R_PT;
+uint8_t temp;
+
+
+/* ADC constants */
 #define ADC0_SAMPLES 4
 #define ADC1_SAMPLES 2
 
@@ -181,6 +192,10 @@ void ADC12_1_INST_IRQHandler(void) {
   switch (DL_ADC12_getPendingInterrupt(ADC12_1_INST)) {
   case DL_ADC12_IIDX_DMA_DONE:
     //Temperatures ready. If above 90C, reduce charging power or abort
+
+    R_PT = (R_PULLUP * gADCResult) / (4095 - gADCResult);        //10000 is the Pullup-resistor value
+    temp = (-R_0 * TEMP_A + sqrtf((R_0 * TEMP_A)*(R_0 * TEMP_A) - 4 * (R_0 * TEMP_B) * (R_0 - R_PT))) / (2*(R_0 * TEMP_B));
+
     break;
   default:
     break;

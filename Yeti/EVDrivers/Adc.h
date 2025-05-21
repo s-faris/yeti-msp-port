@@ -20,10 +20,6 @@
 #include "InterruptBase.h"
 
 // REMINDER: struct holds actual binary values, getters convert to SI
-typedef enum _CPSampleTarget {
-    HI,
-    LO
-} CPSampleTarget;
 
 typedef struct {
     static constexpr uint8_t AVG = 50;
