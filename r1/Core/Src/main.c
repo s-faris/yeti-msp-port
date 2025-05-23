@@ -52,8 +52,8 @@
 #define TEMP_A 0.0039083
 #define TEMP_B -5.77 * 0.0000001
 
-uint32_t R_PT;
-uint8_t temp;
+volatile uint32_t R_PT;
+volatile uint8_t temp;
 
 
 /* ADC constants */
@@ -126,7 +126,6 @@ int main(void)
   HAL_Init();
 
   SYSCFG_DL_init();
-  //SAM: call bootloader?
 
 
   /* Configure the system clock */
@@ -192,22 +191,23 @@ void ADC12_1_INST_IRQHandler(void) {
   switch (DL_ADC12_getPendingInterrupt(ADC12_1_INST)) {
   case DL_ADC12_IIDX_DMA_DONE:
     //Temperatures ready. If above 90C, reduce charging power or abort
-
-    R_PT = (R_PULLUP * gADCResult) / (4095 - gADCResult);        //10000 is the Pullup-resistor value
+    R_PT = (R_PULLUP * gADC1Temps[0]) / (4095 - gADC1Temps[0]);
     temp = (-R_0 * TEMP_A + sqrtf((R_0 * TEMP_A)*(R_0 * TEMP_A) - 4 * (R_0 * TEMP_B) * (R_0 - R_PT))) / (2*(R_0 * TEMP_B));
 
+    //Do something with temp
     break;
   default:
     break;
   }
 }
 
-void TIMG0_IRQHandler(void) {
-  switch (DL_TimerG_getPendingInterrupt(TIMG0)) {
-  case DL_TIMER_IIDX_ZERO:
-    //Specify Hi or Lo sample
-    
-    //Start ADC sample
+void TIMA0_IRQHandler(void) {
+  switch (DL_TimerA_getPendingInterrupt(CCS_CP_INST)) {
+  case DL_TIMER_IIDX_CC1_DN:
+    setTriggerEvseCPLo(gADC0);
+    break;
+  case DL_TIMER_IIDX_CC2_DN:
+    setTriggerEvseCPHi(gADC0);
     break;
   default:
     break;

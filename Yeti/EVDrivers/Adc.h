@@ -26,10 +26,10 @@ typedef struct {
 
 //#pragma pack(4) //needed? review memory layout after build
     uint16_t gADCSamples[4];
-    uint16_t evseCPHi[AVG], evseCPLo[AVG];
-    volatile uint8_t evseCPHiIdx, evseCPLoIdx; 
+    uint16_t evseCPLo[AVG];
+    uint16_t evseCPHi[AVG];
+    volatile uint8_t evseCPLoIdx, evseCPHiIdx;
     volatile uint16_t evsePP, evseDP1, pluckLockFB;
-    //temps from ADC1?
     volatile uint8_t evseCPSampleTarget;
 } ADC;
 
@@ -37,16 +37,16 @@ typedef struct {
 //float getCarCPHi(ADC* adc);
 //float getCarCPLo(ADC* adc);
 
-void getEvseCPHi(ADC* adc, float *out);
 void getEvseCPLo(ADC* adc, float *out);
+void getEvseCPHi(ADC* adc, float *out);
+
 float getEvsePP(ADC* adc);
 float getEvseDP1(ADC* adc);
 float getPluckLockFB(ADC* adc);
 
 //Allows control pilot to signal whether it is sending high or low current
-void setTriggerEvseCPHi(ADC* adc);
 void setTriggerEvseCPLo(ADC* adc);
-void TriggerEvseCPSample(ADC* adc);
+void setTriggerEvseCPHi(ADC* adc);
 
 void ADC_ISR(ADC* adc);
 

@@ -5,22 +5,38 @@
  *      Author: cornelius
  */
 
+
+
 #include "Adc.h"
 #include <cstring>
 #include "cmsis_os.h"
 #include "main.h"
 #include "EVConfig.h"
 
+
+/*
+CP_OUT  | MSP_ADC   | ADC code
+------------------------------------
+12V     | 3.07V     | 4402
+9V      | 2.69V     | 3338
+6V      | 2.31V     | 2867
+3V      | 1.92V     | 2383
+0V      | 1.54V     | 1861
+-12V    | 0.00V     | 0
+*/
+
+
 //SAM TODO: Fix this after understanding the averaging math from cornelius
+void getEvseCPLo(ADC* adc, float *out) {
+    //return adc->evseCPLo / 4095 * 3.3;
+    return;
+}
+
 void getEvseCPHi(ADC* adc, float *out) {
     //return adc->evseCPHi / 4095 * 3.3;
     return;
 }
 
-void getEvseCPLo(ADC* adc, float *out) {
-    //return adc->evseCPLo / 4095 * 3.3;
-    return;
-}
 
 float getEvsePP(ADC* adc) {
     return adc->evsePP / 4095 * 3.3;
@@ -34,26 +50,30 @@ float getPluckLockFB(ADC* adc) {
     return adc->pluckLockFB / 4095 * 3.3;
 }
 
-void setTriggerEvseCPHi(ADC* adc) {
-    adc->evseCPSampleTarget = 2;
-}
-
 void setTriggerEvseCPLo(ADC* adc) {
     adc->evseCPSampleTarget = 1;
 }
 
+void setTriggerEvseCPHi(ADC* adc) {
+    adc->evseCPSampleTarget = 2;
+}
+
+
 void ADC_ISR(ADC* adc) {
-    if(evseCPSampleTarget == 1) {
-        adc->evseCPLo[adc->evseCPLoIdx] = adc->gADCSamples[0];
+
+    /* CP Sample logic */
+    if(adc->evseCPSampleTarget == 1) {
+        adc->evseCPLo = adc->gADCSamples[0];
         if (++adc->evseCPLoIdx >= adc->AVG) {
             adc->evseCPLoIdx = 0;
         }
-    } else if (evseCPSampleTarget == 2) {
-        adc->evseCPHi[adc->evseCPHiIdx] = adc->gADCSamples[0];
+    } else if (adc->evseCPSampleTarget == 2) {
+        adc->evseCPHi = adc->gADCSamples[0];
         if (++adc->evseCPHiIdx >= adc->AVG) {
             adc->evseCPHiIdx = 0;
         }
     }
+
     adc->evsePP = adc->gADCSamples[1];
     adc->evseDP1 = adc->gADCSamples[2];
     adc->pluckLockFB = adc->gADCSamples[3];
