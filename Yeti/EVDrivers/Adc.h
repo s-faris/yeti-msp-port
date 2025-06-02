@@ -25,28 +25,28 @@ typedef struct {
     static constexpr uint8_t AVG = 50;
 
 //#pragma pack(4) //needed? review memory layout after build
-    uint16_t gADCSamples[4];
-    uint16_t evseCPLo[AVG];
-    uint16_t evseCPHi[AVG];
-    volatile uint8_t evseCPLoIdx, evseCPHiIdx;
-    volatile uint16_t evsePP, evseDP1, pluckLockFB;
-    volatile uint8_t evseCPSampleTarget;
+    uint16_t _gADCSamples[4];
+    uint16_t _evseCPLo[AVG];
+    uint16_t _evseCPHi[AVG];
+    volatile uint8_t _evseCPLoIdx, _evseCPHiIdx;
+    volatile uint16_t _evsePP, _evseDP1, _pluckLockFB;
+    volatile uint8_t _evseCPSampleTarget;
 } ADC;
 
 //What were these for?
 //float getCarCPHi(ADC* adc);
 //float getCarCPLo(ADC* adc);
 
-void getEvseCPLo(ADC* adc, float *out);
-void getEvseCPHi(ADC* adc, float *out);
+void ADC_getEvseCPLo(ADC* adc, float *out);
+void ADC_getEvseCPHi(ADC* adc, float *out);
 
-float getEvsePP(ADC* adc);
-float getEvseDP1(ADC* adc);
-float getPluckLockFB(ADC* adc);
+float ADC_getEvsePP(ADC* adc);
+float ADC_getEvseDP1(ADC* adc);
+float ADC_getPluckLockFB(ADC* adc);
 
 //Allows control pilot to signal whether it is sending high or low current
-void setTriggerEvseCPLo(ADC* adc);
-void setTriggerEvseCPHi(ADC* adc);
+void ADC_setTriggerEvseCPLo(ADC* adc);
+void ADC_setTriggerEvseCPHi(ADC* adc);
 
 void ADC_ISR(ADC* adc);
 

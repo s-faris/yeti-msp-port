@@ -63,53 +63,54 @@ volatile uint8_t temp;
 ADC gADC0;
 volatile uint16_t gADC1Temps[ADC1_SAMPLES];
 
-ADC_HandleTypeDef hadc1;
-ADC_HandleTypeDef hadc5;
-DMA_HandleTypeDef hdma_adc1;
+// ADC_HandleTypeDef hadc1;
+// ADC_HandleTypeDef hadc5;
+// DMA_HandleTypeDef hdma_adc1;
 
-CRC_HandleTypeDef hcrc;
+// CRC_HandleTypeDef hcrc;
 
-SPI_HandleTypeDef hspi1;
-SPI_HandleTypeDef hspi2;
-DMA_HandleTypeDef hdma_spi2_tx;
+// SPI_HandleTypeDef hspi1;
+// SPI_HandleTypeDef hspi2;
+// DMA_HandleTypeDef hdma_spi2_tx;
 
-TIM_HandleTypeDef htim1;
-TIM_HandleTypeDef htim3;
-TIM_HandleTypeDef htim8;
+// TIM_HandleTypeDef htim1;
+// TIM_HandleTypeDef htim3;
+// TIM_HandleTypeDef htim8;
 
-UART_HandleTypeDef huart1;
-UART_HandleTypeDef huart2;
-UART_HandleTypeDef huart3;
-DMA_HandleTypeDef hdma_usart2_tx;
-DMA_HandleTypeDef hdma_usart2_rx;
+// UART_HandleTypeDef huart1;
+// UART_HandleTypeDef huart2;
+// UART_HandleTypeDef huart3;
+// DMA_HandleTypeDef hdma_usart2_tx;
+// DMA_HandleTypeDef hdma_usart2_rx;
 
 /* Definitions for defaultTask */
-osThreadId_t defaultTaskHandle;
-const osThreadAttr_t defaultTask_attributes = {
-  .name = "defaultTask",
-  .priority = (osPriority_t) osPriorityNormal,
-  .stack_size = 512 * 4
-};
+// osThreadId_t defaultTaskHandle;
+// const osThreadAttr_t defaultTask_attributes = {
+//   .name = "defaultTask",
+//   .priority = (osPriority_t) osPriorityNormal,
+//   .stack_size = 512 * 4
+// };
 
-void SystemClock_Config(void);
-static void MX_GPIO_Init(void);
-static void MX_DMA_Init(void);
-static void MX_USART2_UART_Init(void);
-static void MX_USART1_UART_Init(void);
-static void MX_USART3_UART_Init(void);
-static void MX_SPI1_Init(void);
-static void MX_SPI2_Init(void);
-static void MX_ADC1_Init(void);
-static void MX_ADC5_Init(void);
-static void MX_TIM1_Init(void);
-static void MX_TIM3_Init(void);
-static void MX_TIM8_Init(void);
-static void MX_CRC_Init(void);
+// void SystemClock_Config(void);
+// static void MX_GPIO_Init(void);
+// static void MX_DMA_Init(void);
+// static void MX_USART2_UART_Init(void);
+// static void MX_USART1_UART_Init(void);
+// static void MX_USART3_UART_Init(void);
+// static void MX_SPI1_Init(void);
+// static void MX_SPI2_Init(void);
+// static void MX_ADC1_Init(void);
+// static void MX_ADC5_Init(void);
+// static void MX_TIM1_Init(void);
+// static void MX_TIM3_Init(void);
+// static void MX_TIM8_Init(void);
+// static void MX_CRC_Init(void);
 
-void StartDefaultTask(void *argument);
+// void StartDefaultTask(void *argument);
 
 int main(void)
 {
+  //SAM: refactor bootloader
 	if (reset_flags==0x12ABCDEF) {
 	  for (int i=0;i<100;i++) reset_flags = i;
 	  restartInBootLoaderMode_Step2();
@@ -123,39 +124,39 @@ int main(void)
 	__HAL_RCC_USART1_RELEASE_RESET();
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-  HAL_Init();
+  //HAL_Init();
 
   SYSCFG_DL_init();
 
 
   /* Configure the system clock */
-  SystemClock_Config();
+  // SystemClock_Config();
 
-  /* Configure peripherals */
-  MX_GPIO_Init();
-  MX_DMA_Init();
-  MX_USART2_UART_Init();
-  MX_USART1_UART_Init();
-  MX_USART3_UART_Init();
-  MX_SPI1_Init();
-  MX_SPI2_Init();
-  MX_ADC1_Init();
-  MX_TIM1_Init();
-  MX_TIM3_Init();
-  MX_CRC_Init();
-  MX_ADC5_Init();
-  MX_TIM8_Init();
+  // /* Configure peripherals */
+  // MX_GPIO_Init();
+  // MX_DMA_Init();
+  // MX_USART2_UART_Init();
+  // MX_USART1_UART_Init();
+  // MX_USART3_UART_Init();
+  // MX_SPI1_Init();
+  // MX_SPI2_Init();
+  // MX_ADC1_Init();
+  // MX_TIM1_Init();
+  // MX_TIM3_Init();
+  // MX_CRC_Init();
+  // MX_ADC5_Init();
+  // MX_TIM8_Init();
 
-  HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, 6, 0);
-  HAL_NVIC_SetPriority(DMA1_Channel2_IRQn, 6, 0);
-  HAL_NVIC_SetPriority(DMA1_Channel3_IRQn, 6, 0);
-  HAL_NVIC_SetPriority(DMA1_Channel4_IRQn, 6, 0);
-  HAL_NVIC_SetPriority(DMA1_Channel5_IRQn, 6, 0);
-  HAL_NVIC_SetPriority(DMA1_Channel6_IRQn, 6, 0);
-  HAL_NVIC_SetPriority(TIM1_UP_TIM16_IRQn, 6, 0);
-  HAL_NVIC_SetPriority(TIM1_CC_IRQn, 6, 0);
-  HAL_NVIC_SetPriority(TIM3_IRQn, 6, 0);
-  HAL_NVIC_SetPriority(USART2_IRQn, 6, 0);
+  // HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, 6, 0);
+  // HAL_NVIC_SetPriority(DMA1_Channel2_IRQn, 6, 0);
+  // HAL_NVIC_SetPriority(DMA1_Channel3_IRQn, 6, 0);
+  // HAL_NVIC_SetPriority(DMA1_Channel4_IRQn, 6, 0);
+  // HAL_NVIC_SetPriority(DMA1_Channel5_IRQn, 6, 0);
+  // HAL_NVIC_SetPriority(DMA1_Channel6_IRQn, 6, 0);
+  // HAL_NVIC_SetPriority(TIM1_UP_TIM16_IRQn, 6, 0);
+  // HAL_NVIC_SetPriority(TIM1_CC_IRQn, 6, 0);
+  // HAL_NVIC_SetPriority(TIM3_IRQn, 6, 0);
+  // HAL_NVIC_SetPriority(USART2_IRQn, 6, 0);
 
 
   //SAM: DMA inits for ADC0 and ADC1
@@ -168,6 +169,12 @@ int main(void)
   DL_DMA_setDestAddr(DMA, DMA_CH0_CHAN_ID, (uint32_t)&gADC1Temps[0]);
   DL_DMA_setTransferSize(DMA, DMA_CH0_CHAN_ID, ADC1_SAMPLES);
   DL_DMA_enableChannel(DMA, DMA_CH0_CHAN_ID);
+
+  //Start CP HAL
+  //Start MGMT link
+  //Start RX
+  //Start CP and run
+  //Run RX
 
   while (1)
   {
@@ -195,6 +202,7 @@ void ADC12_1_INST_IRQHandler(void) {
     temp = (-R_0 * TEMP_A + sqrtf((R_0 * TEMP_A)*(R_0 * TEMP_A) - 4 * (R_0 * TEMP_B) * (R_0 - R_PT))) / (2*(R_0 * TEMP_B));
 
     //Do something with temp
+
     break;
   default:
     break;
@@ -204,16 +212,17 @@ void ADC12_1_INST_IRQHandler(void) {
 void TIMA0_IRQHandler(void) {
   switch (DL_TimerA_getPendingInterrupt(CCS_CP_INST)) {
   case DL_TIMER_IIDX_CC1_DN:
-    setTriggerEvseCPLo(gADC0);
+    ADC_setTriggerEvseCPLo(&gADC0);
     break;
   case DL_TIMER_IIDX_CC2_DN:
-    setTriggerEvseCPHi(gADC0);
+    ADC_setTriggerEvseCPHi(&gADC0);
     break;
   default:
     break;
   }
 }
 
+//Plug lock?
 
 
 

@@ -45,9 +45,48 @@
 
 // Global variables for error GPIOs (as they are needed in interrupt handler!)s
 extern uint16_t rcd_dc_errorin_gpio_pin;
-extern GPIO_TypeDef *rcd_dc_errorin_gpio_port;
+extern GPIO_Regs* rcd_dc_errorin_gpio_port;
 extern uint16_t rcd_ac_errorin_gpio_pin;
-extern GPIO_TypeDef *rcd_ac_errorin_gpio_port;
+extern GPIO_Regs* rcd_ac_errorin_gpio_port;
+
+
+//TODO: ensure corresponding GPIOs and TIM have IRQ enabled and are configured to handle RCD
+//Also, determine I2C packet format from TIDA-010237 to determine how to integrate
+typedef struct {
+    float _residualCurrentPercentPerMa;
+    uint16_t _expectedPwmPeriod; //do we need this if we have I2C?
+
+    GPIO* _testout;
+    GPIO* _errorin;
+    GPIO* _pwmin;
+    GPTIMER_Regs* _pwmTimer; //do we need this if we have I2C?
+    PowerSwitch* _powerSwitch;
+
+    uint16_t _isrLastRising, _isrRising, _isrFalling = 0;
+    uint16_t _isrPwmPeriod;
+    float _isrPwmDutyCyclePercent;
+    bool _isrPwmUpdated;
+    uint16_t _isrPwmUpdateTimeout;
+    bool _isrRcdTestModeError;
+    bool _isrRcdEnabled;
+    bool _isrRcdActive;
+    bool _isrRcdFired;
+    // bool _isrRcdUnused;
+} RCD;
+
+void RCD_executeSelfTest(RCD *rcd);
+void RCD_getResidualCurrent(RCD *rcd);
+void RCD_enable(RCD *rcd);
+void RCD_disable(RCD *rcd);
+void RCD_activate(RCD *rcd);
+void RCD_deactivate(RCD *rcd);
+bool RCD_getEnabled(RCD *rcd);
+bool RCD_getRcdFired(RCD *rcd);
+void RCD_fire(RCD *rcd);
+void RCD_reset(RCD *rcd);
+
+
+
 
 class Rcd : private InterruptBase {
 public:

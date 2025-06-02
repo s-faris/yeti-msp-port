@@ -12,9 +12,80 @@
 #include "main.h"
 
 uint16_t rcd_dc_errorin_gpio_pin = 0;
-GPIO_TypeDef *rcd_dc_errorin_gpio_port = 0;
+GPIO_Regs* rcd_dc_errorin_gpio_port = 0;
 uint16_t rcd_ac_errorin_gpio_pin = 0;
-GPIO_TypeDef *rcd_ac_errorin_gpio_port = 0;
+GPIO_Regs* rcd_ac_errorin_gpio_port = 0;
+
+void RCD_executeSelfTest(RCD *rcd) {
+    // TO DO: implement self-test logic here
+    // For example:
+    if (rcd->testout != NULL) {
+        // Perform test on testout pin
+    }
+    if (rcd->errorin != NULL) {
+        // Perform test on errorin pin
+    }
+    // ...
+}
+
+void RCD_getResidualCurrent(RCD *rcd) {
+    float dc;
+    dc = rcd->_isrPwmDutyCyclePercent;
+    return dc / rcd->_residualCurrentPercentPerMa;
+}
+
+void RCD_enable(RCD *rcd) {
+    rcd->_isrRcdEnabled = true;
+}
+
+void RCD_disable(RCD *rcd) {
+    rcd->_isrRcdEnabled = false;
+}
+
+void RCD_activate(RCD *rcd) {
+    rcd->_isrRcdActive = true;
+    rcd->_isrRcdTestModeError = false;
+    rcd->_isrRcdFired = false;
+}
+
+void RCD_deactivate(RCD *rcd) {
+    rcd->_isrRcdActive = false;
+    rcd->_isrRcdTestModeError = false;
+    rcd->_isrRcdFired = false;
+}
+
+bool RCD_getEnabled(RCD *rcd) {
+    return rcd->_isrRcdEnabled;
+}
+
+bool RCD_getRcdFired(RCD *rcd) {
+    return rcd->_isrRcdFired;
+}
+
+void RCD_fire(RCD *rcd) {
+    if (rcd->_isrRcdEnabled && rcd->_isrRcdActive) {
+        // emergency switch off relais
+#ifdef FINE_GRAIN_DEBUG_PRINTF
+        printf("RCD INT FIRED\n");
+#endif
+        if (rcd->_powerSwitch)
+            rcd->_powerSwitch->emergencySwitchOff();
+
+        rcd->_isrRcdFired = true;
+        rcd->_isrRcdActive = false;
+    }
+}
+
+void RCD_reset(RCD *rcd) {
+    rcd->_isrRcdFired = false;
+}
+
+
+
+
+
+
+
 
 Rcd::Rcd(Gpio &_testout, Gpio &_errorin, Gpio &_pwmin,
          TIM_HandleTypeDef *_pwmTimer, PowerSwitch *_powerSwitch) :
@@ -164,14 +235,13 @@ void Rcd::HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 void Rcd::HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim) {
     // Check for all interrupt flags that relate to my PWM timer
     if (htim->Instance == pwmTimer->Instance) {
-
         switch (htim->Channel) {
-        case HAL_TIM_ACTIVE_CHANNEL_1:
+        case HAL_TIM_ACTIVE_CHANNEL_1: //rising edge
             isrLastRising = isrRising;
             isrRising = __HAL_TIM_GET_COMPARE(htim, TIM_CHANNEL_1);
             isrPwmPeriod = (isrRising - isrLastRising);
             break;
-        case HAL_TIM_ACTIVE_CHANNEL_2:
+        case HAL_TIM_ACTIVE_CHANNEL_2: //falling edge
             isrFalling = __HAL_TIM_GET_COMPARE(htim, TIM_CHANNEL_2);
             if (isrPwmPeriod > (expectedPwmPeriod - 500) &&
                 isrPwmPeriod < (expectedPwmPeriod + 500)) {

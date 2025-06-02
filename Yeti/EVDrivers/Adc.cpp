@@ -27,57 +27,67 @@ CP_OUT  | MSP_ADC   | ADC code
 
 
 //SAM TODO: Fix this after understanding the averaging math from cornelius
-void getEvseCPLo(ADC* adc, float *out) {
-    //return adc->evseCPLo / 4095 * 3.3;
+void ADC_getEvseCPLo(ADC* adc, float *out) {
+    int i = 0;
+    uint16_t o[AVG];
+    memcpy(o, adc->_evseCPLo, adc->AVG * sizeof(uint16_t));
+    for (i = 0; i < AVG; i++) {
+        out[i] = (float)o[i] / 4095 * 3.3;
+    }
     return;
 }
 
-void getEvseCPHi(ADC* adc, float *out) {
-    //return adc->evseCPHi / 4095 * 3.3;
+void ADC_getEvseCPHi(ADC* adc, float *out) {
+    int i = 0;
+    uint16_t o[AVG];
+    memcpy(o, adc->_evseCPHi, adc->AVG * sizeof(uint16_t));
+    for (i = 0; i < AVG; i++) {
+        out[i] = (float)o[i] / 4095 * 3.3;
+    }
     return;
 }
 
 
-float getEvsePP(ADC* adc) {
-    return adc->evsePP / 4095 * 3.3;
+float ADC_getEvsePP(ADC* adc) {
+    return adc->_evsePP / 4095 * 3.3;
 }
 
-float getEvseDP1(ADC* adc) {
-    return adc->evseDP1 / 4095 * 3.3;
+float ADC_getEvseDP1(ADC* adc) {
+    return adc->_evseDP1 / 4095 * 3.3;
 }
 
-float getPluckLockFB(ADC* adc) {
-    return adc->pluckLockFB / 4095 * 3.3;
+float ADC_getPluckLockFB(ADC* adc) {
+    return adc->_pluckLockFB / 4095 * 3.3;
 }
 
-void setTriggerEvseCPLo(ADC* adc) {
-    adc->evseCPSampleTarget = 1;
+void ADC_setTriggerEvseCPLo(ADC* adc) {
+    adc->_evseCPSampleTarget = 1;
 }
 
-void setTriggerEvseCPHi(ADC* adc) {
-    adc->evseCPSampleTarget = 2;
+void ADC_setTriggerEvseCPHi(ADC* adc) {
+    adc->_evseCPSampleTarget = 2;
 }
 
 
 void ADC_ISR(ADC* adc) {
 
     /* CP Sample logic */
-    if(adc->evseCPSampleTarget == 1) {
-        adc->evseCPLo = adc->gADCSamples[0];
-        if (++adc->evseCPLoIdx >= adc->AVG) {
-            adc->evseCPLoIdx = 0;
+    if(adc->_evseCPSampleTarget == 1) {
+        adc->_evseCPLo = adc->_gADCSamples[0];
+        if (++adc->_evseCPLoIdx >= adc->_AVG) {
+            adc->_evseCPLoIdx = 0;
         }
-    } else if (adc->evseCPSampleTarget == 2) {
-        adc->evseCPHi = adc->gADCSamples[0];
-        if (++adc->evseCPHiIdx >= adc->AVG) {
-            adc->evseCPHiIdx = 0;
+    } else if (adc->_evseCPSampleTarget == 2) {
+        adc->_evseCPHi = adc->_gADCSamples[0];
+        if (++adc->_evseCPHiIdx >= adc->_AVG) {
+            adc->_evseCPHiIdx = 0;
         }
     }
 
-    adc->evsePP = adc->gADCSamples[1];
-    adc->evseDP1 = adc->gADCSamples[2];
-    adc->pluckLockFB = adc->gADCSamples[3];
-    adc->evseCPSampleTarget = 0;
+    adc->_evsePP = adc->_gADCSamples[1];
+    adc->_evseDP1 = adc->_gADCSamples[2];
+    adc->_pluckLockFB = adc->_gADCSamples[3];
+    adc->_evseCPSampleTarget = 0;
 }
 
 

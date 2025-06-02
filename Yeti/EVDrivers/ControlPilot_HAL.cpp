@@ -13,6 +13,88 @@
 
 #include "EVConfig.h"
 
+bool ControlPilot_HAL_readCPSignal(ControlPilot_HAL *cp) {
+     // note we do not sqrt() the std dev here
+    const float maxStdDev = 0.01; // 0.1V std dev
+
+    float cpLoArr[cp->_adc->AVG];
+    float cpHiArr[cp->_adc->AVG];
+
+    ADC_getEvseCPLo(cp->_adc, &cpHiArr[0]);
+    ADC_getEvseCPHi(cp->_adc, &cpLoArr[0]);
+
+    // do some statistics to see if signal is stable
+    float avgLo = 0;
+    float avgHi = 0;
+    for (int i = 0; i < Adc::AVG; i++) {
+        avgLo += cpLoArr[i];
+        avgHi += cpHiArr[i];
+    }
+    avgLo /= cp->_adc->AVG;
+    avgHi /= cp->_adc->AVG;
+
+    float stdDevLo = 0;
+    float stdDevHi = 0;
+    for (int i = 0; i < cp->_adc->AVG; i++) {
+        stdDevLo += (cpLoArr[i] - avgLo) * (cpLoArr[i] - avgLo);
+        stdDevHi += (cpHiArr[i] - avgHi) * (cpHiArr[i] - avgHi);
+    }
+    stdDevLo /= cp->_adc->AVG;
+    stdDevHi /= cp->_adc->AVG;
+
+    if (stdDevHi > maxStdDev || stdDevLo > maxStdDev)
+        return false;
+
+    cp->_cpLo = avgLo;
+    cp->_cpHi = avgHi;
+
+    return true;
+}
+
+float ControlPilot_HAL_getCPHi(ControlPilot_HAL *cp) {
+    return cp->_cpHi;
+}
+
+float ControlPilot_HAL_getCPLo(ControlPilot_HAL *cp) {
+    return cp->_cpLo;
+}
+
+//float ControlPilot_HAL_getSupply12V(ControlPilot_HAL *cp);
+//float ControlPilot_HAL_getSupplyN12V(ControlPilot_HAL *cp);
+
+void ControlPilot_HAL_lockMotorLock(ControlPilot_HAL *cp);
+void ControlPilot_HAL_lockMotorUnlock(ControlPilot_HAL *cp);
+void ControlPilot_HAL_lockMotorOff(ControlPilot_HAL *cp);
+
+//TODO: derive index from _pwmTimer inst?
+void ControlPilot_HAL_setPWM(ControlPilot_HAL *cp, float dc) {
+    uint16_t periodTicks = DL_Timer_getLoadValue(cp->_pwmTimer) + 1;
+    uint16_t counterTicks = dc * periodTicks;
+    DL_Timer_setCaptureCompareValue(cp->_pwmTimer, counterTicks, DL_TIMER_CC_0_INDEX);
+}
+
+void ControlPilot_HAL_enableCP(ControlPilot_HAL *cp) {
+    if (cp->_cpEnable)
+        cp->_cpEnable->set();
+}
+
+void ControlPilot_HAL_disableCP(ControlPilot_HAL *cp) {
+    if (cp->_cpEnable)
+        cp->_cpEnable->reset();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 ControlPilot_HAL::ControlPilot_HAL(TIM_HandleTypeDef *_pwmTimer, Adc &_adc,
                                    Gpio *_cpEnable) :
     pwmTimer(_pwmTimer), adc(_adc), cpEnable(_cpEnable) {
@@ -86,7 +168,7 @@ bool ControlPilot_HAL::readCPSignal() {
 //SAM: at 200 cycles, CH2 toggles (starts low). PWM IRQ happens and sees this is active, triggers a EvseCPHi reading
 //     at 45500 cycles, CH3 toggles (starts low). Counter wraps around and CH3 toggles low at 200 cycles, next PWM IRQ triggers a EvseCPLo reading
 //     effect is alternating Hi/Lo reads every PWM cycle
-//     Can we just do this in SW and alternate the trigger every time we go into ISR? output compare values seem arbitrary and unneeded
+//     Can we just do this in SW and alternate the trigger every time we go into ISR?
 
 // End of high pulse in PWM cycle / general CC match callback
 // Used here for CC2/CC3 that triggers ADC readings at the right moments

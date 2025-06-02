@@ -43,7 +43,7 @@ void StartMainTask(void *argument) {
 			reset_cause_get_name(reset_cause));
 
 	// SPI1 belongs to ABP2
-	static SpiBus spi_bus(hspi1, HAL_RCC_GetPCLK2Freq());
+	// static SpiBus spi_bus(hspi1, HAL_RCC_GetPCLK2Freq());
 
 	// read out config jumper and set a hard current limit
 	static Gpio current_limit_cfg(CFG_GPIO_Port, CFG_Pin);

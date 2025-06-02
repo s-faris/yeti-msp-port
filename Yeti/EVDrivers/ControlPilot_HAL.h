@@ -27,6 +27,32 @@
 #include "Gpio.h"
 #include "InterruptBase.h"
 
+typedef struct {
+    GPTIMER_Regs* _pwmTimer;
+    ADC* _adc;
+
+    float _cpLo, _cpHi;
+    GPIO* _cpEnable;
+} ControlPilot_HAL;
+
+bool ControlPilot_HAL_readCPSignal(ControlPilot_HAL *cp);
+float ControlPilot_HAL_getCPHi(ControlPilot_HAL *cp);
+float ControlPilot_HAL_getCPLo(ControlPilot_HAL *cp);
+//float ControlPilot_HAL_getSupply12V(ControlPilot_HAL *cp);
+//float ControlPilot_HAL_getSupplyN12V(ControlPilot_HAL *cp);
+
+void ControlPilot_HAL_lockMotorLock(ControlPilot_HAL *cp);
+void ControlPilot_HAL_lockMotorUnlock(ControlPilot_HAL *cp);
+void ControlPilot_HAL_lockMotorOff(ControlPilot_HAL *cp);
+
+void ControlPilot_HAL_setPWM(ControlPilot_HAL *cp, float dc);
+void ControlPilot_HAL_enableCP(ControlPilot_HAL *cp);
+void ControlPilot_HAL_disableCP(ControlPilot_HAL *cp);
+
+
+
+
+
 class ControlPilot_HAL : private InterruptBase {
 public:
     ControlPilot_HAL(TIM_HandleTypeDef *_pwmTimer, Adc &_adc, Gpio *_cpEnable);
